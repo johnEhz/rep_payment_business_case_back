@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmacion de Pedido</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2d3748; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f6f8; padding: 30px 15px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);">
+          
+          <!-- Encabezado -->
+          <tr>
+            <td style="background-color: #1a365d; padding: 28px 32px; text-align: left;">
+              <span style="font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px; text-transform: uppercase;">Tienda Online</span>
+              <p style="margin: 6px 0 0 0; font-size: 13px; color: #cbd5e0;">Confirmacion de creacion de pedido</p>
+            </td>
+          </tr>
+
+          <!-- Contenido Principal -->
+          <tr>
+            <td style="padding: 32px;">
+              <h1 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #1a202c;">Estimado(a) {{customerName}},</h1>
+              <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #4a5568;">
+                Hemos registrado tu pedido con exito. El inventario de tus productos ha sido reservado de forma temporal mientras completas el proceso de pago.
+              </p>
+
+              <!-- Tarjeta de Resumen -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f7fafc; border: 1px solid #edf2f7; border-radius: 6px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #edf2f7;">
+                    <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #718096; letter-spacing: 0.5px;">Numero de Pedido</span>
+                    <div style="font-size: 16px; font-weight: 700; color: #1a365d; margin-top: 4px;">{{orderNumber}}</div>
+                  </td>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #edf2f7; text-align: right;">
+                    <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #718096; letter-spacing: 0.5px;">Estado</span>
+                    <div style="font-size: 13px; font-weight: 700; color: #c05621; margin-top: 4px; text-transform: uppercase;">Pendiente de Pago</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding: 16px 20px;">
+                    <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #718096; letter-spacing: 0.5px;">Direccion de Entrega</span>
+                    <div style="font-size: 14px; color: #2d3748; margin-top: 4px;">{{deliveryAddress}}, {{deliveryCity}}</div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Resumen Financiero -->
+              <h2 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #2d3748;">Detalle de Valores</h2>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 24px; font-size: 14px;">
+                <tr>
+                  <td style="padding: 8px 0; color: #718096;">Subtotal productos:</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #2d3748;">{{subtotalFormatted}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #718096;">Costo de envio (Delivery):</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #2d3748;">{{deliveryFeeFormatted}}</td>
+                </tr>
+                <tr style="border-top: 1px solid #e2e8f0;">
+                  <td style="padding: 12px 0; font-size: 15px; font-weight: 700; color: #1a202c;">Total a Pagar:</td>
+                  <td style="padding: 12px 0; text-align: right; font-size: 16px; font-weight: 700; color: #1a365d;">{{totalFormatted}}</td>
+                </tr>
+              </table>
+
+              <!-- Aviso de Expiracion de Inventario -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fffaf0; border-left: 4px solid #dd6b20; border-radius: 4px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 14px 16px; font-size: 13px; line-height: 1.5; color: #9c4221;">
+                    <strong>Importante:</strong> Dispones de 15 minutos para efectuar tu pago. Una vez cumplido este plazo, la reserva de inventario se liberara automaticamente para otros compradores.
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Boton de Accion -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 28px 0 16px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="{{trackingUrl}}" target="_blank" style="background-color: #2b6cb0; color: #ffffff; text-decoration: none; padding: 13px 28px; border-radius: 6px; font-size: 14px; font-weight: 600; display: inline-block;">
+                      Consultar Estado del Pedido
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 24px 0 0 0; font-size: 12px; line-height: 1.5; color: #a0aec0; text-align: center;">
+                Si el boton no funciona, copia y pega el siguiente enlace en tu navegador:<br>
+                <span style="color: #4a5568; word-break: break-all;">{{trackingUrl}}</span>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Pie de Pagina -->
+          <tr>
+            <td style="background-color: #edf2f7; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; font-size: 12px; color: #718096; line-height: 1.5;">
+                Mensaje automatico generado por el sistema de compras en linea.<br>
+                No es necesario responder a este correo electronico.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

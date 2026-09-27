@@ -1,0 +1,734 @@
+{
+  "info": {
+    "_postman_id": "e-commerce-guest-checkout-api-collection",
+    "name": "E-Commerce Guest Checkout & Payments API (Prueba Tecnica)",
+    "description": "# E-Commerce API - Guest Checkout, Inventario Concurrente, Delivery Dinamico y Pagos\n\nColeccion completa y documentada para probar todos los endpoints del backend de la tienda virtual.\n\n### Caracteristicas Principales:\n- **Guest Checkout (Sin Registro)**: Compra como invitado con emision de `accessToken` criptografico para seguimiento seguro sin necesidad de cuenta.\n- **Concurrencia de Inventario**: Reservas atómicas con bloqueo pesimista (`pessimistic_write`) a 15 minutos, y liberacion inmediata ante rechazo de pago.\n- **Delivery Dinamico con Mapbox**: Tienda configurada en Robledo, Medellin (`Cra 73B #75-171`). Tarifas calculadas por distancia real, valor de compra y descuentos por volumen (50% y 100% envio gratis).\n- **Notificaciones Desacopladas**: Integrado con plantillas de correo en Amazon SES (catalogadas en BD en la tabla `notification_templates`) y modo simulacion en consola.\n- **Estado Automatico a DELIVERED**: Al aprobar el pago, la orden y delivery pasan directamente a `DELIVERED` para facilitar la evaluacion tecnica.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categorySlug",
+      "value": "audio-y-sonido",
+      "type": "string"
+    },
+    {
+      "key": "brandId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "brandSlug",
+      "value": "prosound",
+      "type": "string"
+    },
+    {
+      "key": "orderNumber",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "deliveryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transactionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transactionReference",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Catalogo & Productos",
+      "description": "Consultas del catalogo de productos con soporte para relaciones de categorias y marcas, galerias de multiples imagenes y stock en tiempo real.",
+      "item": [
+        {
+          "name": "1.1 Listar Productos (Todos o Filtrados)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (Array.isArray(data) && data.length > 0) {",
+                  "    pm.collectionVariables.set(\"productId\", data[0].id);",
+                  "    if (data[0].categoryId) pm.collectionVariables.set(\"categoryId\", data[0].categoryId);",
+                  "    if (data[0].brandId) pm.collectionVariables.set(\"brandId\", data[0].brandId);",
+                  "    console.log(\"Autoguardado productId:\", data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "{{categoryId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "brandId",
+                  "value": "{{brandId}}",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retorna el listado completo de productos o filtrado por categoria y marca. Guarda automaticamente el primer `productId` en las variables de la coleccion."
+          }
+        },
+        {
+          "name": "1.2 Obtener Detalle de Producto por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "Obtiene el detalle completo de un producto por su UUID, incluyendo galeria de imagenes (`images: string[]`), categoria y marca asociadas."
+          }
+        },
+        {
+          "name": "1.3 Listar Categorias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "if (Array.isArray(data) && data.length > 0) {",
+                  "    pm.collectionVariables.set(\"categoryId\", data[0].id);",
+                  "    pm.collectionVariables.set(\"categorySlug\", data[0].slug);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            },
+            "description": "Lista todas las categorias registradas en la base de datos."
+          }
+        },
+        {
+          "name": "1.4 Obtener Categoria por Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/slug/{{categorySlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "slug",
+                "{{categorySlug}}"
+              ]
+            },
+            "description": "Consulta una categoria mediante su slug amigable (ej. `audio-y-sonido`, `gaming-y-perifericos`)."
+          }
+        },
+        {
+          "name": "1.5 Listar Marcas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "if (Array.isArray(data) && data.length > 0) {",
+                  "    pm.collectionVariables.set(\"brandId\", data[0].id);",
+                  "    pm.collectionVariables.set(\"brandSlug\", data[0].slug);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/brands",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "brands"
+              ]
+            },
+            "description": "Lista todas las marcas de productos disponibles."
+          }
+        },
+        {
+          "name": "1.6 Obtener Marca por Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/brands/slug/{{brandSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "brands",
+                "slug",
+                "{{brandSlug}}"
+              ]
+            },
+            "description": "Consulta una marca por su slug (ej. `prosound`, `mechkeys`, `titantech`)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Delivery & Mapbox API",
+      "description": "Motor de calculo dinamico de tarifas de entrega con Mapbox y georreferenciacion local desde la tienda en Robledo, Medellin.",
+      "item": [
+        {
+          "name": "2.1 Calcular Tarifa Completa de Delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totalPurchaseAmountInCents\": 15000000,\n  \"deliveryAddress\": \"Cra 73B #75-171, Robledo\",\n  \"deliveryCity\": \"Medellin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/delivery/calculate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "delivery",
+                "calculate"
+              ]
+            },
+            "description": "Calcula la tarifa considerando:\n1. Distancia en km desde la tienda base (`Cra 73B #75-171, Robledo, Medellin`)\n2. Rango por valor de compra\n3. Regla de descuentos: $80.000+ envio gratis, $50.000+ 50% de descuento."
+          }
+        },
+        {
+          "name": "2.2 Estimacion Rapida de Delivery (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/delivery/estimate?amountInCents=15000000&address=Cra%2073B%20%2375-171&city=Medellin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "delivery",
+                "estimate"
+              ],
+              "query": [
+                {
+                  "key": "amountInCents",
+                  "value": "15000000"
+                },
+                {
+                  "key": "address",
+                  "value": "Cra 73B #75-171"
+                },
+                {
+                  "key": "city",
+                  "value": "Medellin"
+                }
+              ]
+            },
+            "description": "Endpoint ligero para precargar el costo de envio en el carrito de compras."
+          }
+        },
+        {
+          "name": "2.3 Consultar Delivery por Order ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/delivery/order/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "delivery",
+                "order",
+                "{{orderId}}"
+              ]
+            },
+            "description": "Consulta los datos del envio, estado y repartidor asignado a una orden."
+          }
+        },
+        {
+          "name": "2.4 Actualizar Estado de Despacho (Driver/Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DELIVERED\",\n  \"driverId\": \"driver-med-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/delivery/{{deliveryId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "delivery",
+                "{{deliveryId}}",
+                "status"
+              ]
+            },
+            "description": "Actualiza manualmente el estado de entrega (`PENDING`, `DISPATCHED`, `DELIVERED`)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Flujo Guest Checkout (Sin Registro)",
+      "description": "El flujo principal de compra para invitados: cotizacion, creacion de orden, reserva de stock atomica por 15 minutos, pagos y seguimiento seguro.",
+      "item": [
+        {
+          "name": "3.1 Preview del Checkout (Cotizacion Previa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"deliveryAddress\": \"Cra 73B #75-171\",\n  \"deliveryCity\": \"Medellin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/checkout/preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout",
+                "preview"
+              ]
+            },
+            "description": "Valida stock disponible y calcula el subtotal y costo exacto de delivery antes de confirmar la compra."
+          }
+        },
+        {
+          "name": "3.2 Crear Orden de Invitado (Reserva 15 Min)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set(\"orderNumber\", data.orderNumber);",
+                  "pm.collectionVariables.set(\"accessToken\", data.accessToken);",
+                  "pm.collectionVariables.set(\"orderId\", data.id);",
+                  "if (data.delivery) pm.collectionVariables.set(\"deliveryId\", data.delivery.id);",
+                  "console.log(\"Guardado orderNumber:\", data.orderNumber, \"accessToken:\", data.accessToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Juan Perez Evaluador\",\n  \"customerEmail\": \"juan.perez@example.com\",\n  \"customerPhone\": \"3001234567\",\n  \"deliveryAddress\": \"Cra 73B #75-171\",\n  \"deliveryCity\": \"Medellin\",\n  \"deliveryNotes\": \"Dejar en porteria de la unidad residencial\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/checkout/order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout",
+                "order"
+              ]
+            },
+            "description": "Crea la orden en estado `PENDING_PAYMENT`, reserva el inventario por 15 minutos de forma atomica y emite un `accessToken` criptografico de invitado."
+          }
+        },
+        {
+          "name": "3.3 Pagar Orden (Simular Aprobado -> Estado DELIVERED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderNumber\": \"{{orderNumber}}\",\n  \"accessToken\": \"{{accessToken}}\",\n  \"acceptanceToken\": \"acceptance_token_placeholder\",\n  \"cardToken\": \"tok_test_card_approved\",\n  \"installments\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/checkout/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout",
+                "pay"
+              ]
+            },
+            "description": "Procesa el pago con la pasarela. Al ser aprobado:\n- La orden pasa automaticamente a `DELIVERED`.\n- El Delivery pasa a `DELIVERED`.\n- La reserva de inventario pasa a `CONFIRMED`.\n- Se emite la notificacion por correo con plantilla nativa de SES."
+          }
+        },
+        {
+          "name": "3.4 Pagar Orden (Simular Rechazado -> Liberacion Inmediata Stock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderNumber\": \"{{orderNumber}}\",\n  \"accessToken\": \"{{accessToken}}\",\n  \"acceptanceToken\": \"acceptance_token_placeholder\",\n  \"cardToken\": \"tok_test_card_declined\",\n  \"installments\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/checkout/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout",
+                "pay"
+              ]
+            },
+            "description": "Demuestra la regla critica de negocio: si la pasarela declina el pago, las reservas de stock pasan inmediatamente a `RELEASED`, quedando disponibles al instante en el catalogo."
+          }
+        },
+        {
+          "name": "3.5 Seguimiento Seguro de Orden (Tracking Invitado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/track/{{orderNumber}}?token={{accessToken}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "track",
+                "{{orderNumber}}"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}"
+                }
+              ]
+            },
+            "description": "Permite al cliente invitado consultar el estado de su orden, transacciones y delivery en tiempo real utilizando su token de seguridad."
+          }
+        },
+        {
+          "name": "3.6 Tracking con Token Invalido (Seguridad - Error 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/track/{{orderNumber}}?token=token_invalido_de_prueba",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "track",
+                "{{orderNumber}}"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "token_invalido_de_prueba"
+                }
+              ]
+            },
+            "description": "Demuestra el control de acceso: si un tercero intenta consultar una orden sin el token correcto, el sistema responde con 401 Unauthorized."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Pasarela de Pagos & Webhooks",
+      "description": "Endpoints de interaccion con la pasarela de pagos y recepcion asincrona de webhooks.",
+      "item": [
+        {
+          "name": "4.1 Obtener Datos de Comercio de la Pasarela",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/merchant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "merchant"
+              ]
+            },
+            "description": "Consulta los tokens de aceptacion de terminos y politicas de la pasarela."
+          }
+        },
+        {
+          "name": "4.2 Historial de Intentos de Pago de la Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/order/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "order",
+                "{{orderId}}"
+              ]
+            },
+            "description": "Lista todas las transacciones e intentos de pago registrados para una misma orden (util para auditoria de reintentos)."
+          }
+        },
+        {
+          "name": "4.3 Webhook de Notificacion Asincrona (Idempotente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"transaction.updated\",\n  \"data\": {\n    \"transaction\": {\n      \"id\": \"gw-tx-webhook-sim-01\",\n      \"status\": \"APPROVED\",\n      \"amount_in_cents\": 15400000,\n      \"reference\": \"{{orderNumber}}-sim\",\n      \"customer_email\": \"juan.perez@example.com\"\n    }\n  },\n  \"sent_at\": \"2026-09-24T22:30:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "webhook"
+              ]
+            },
+            "description": "Endpoint para recibir webhooks de la pasarela de pagos. Implementa verificacion de idempotencia."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Transacciones Directas (Flujo Alternativo)",
+      "description": "Endpoints para compra directa de un solo producto y cotizacion rapida.",
+      "item": [
+        {
+          "name": "5.1 Calcular Tarifas Dinamicas de Transaccion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/fees?productId={{productId}}&quantity=1&deliveryAddress=Cra%2073B%20%2375-171&deliveryCity=Medellin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "fees"
+              ],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "{{productId}}"
+                },
+                {
+                  "key": "quantity",
+                  "value": "1"
+                },
+                {
+                  "key": "deliveryAddress",
+                  "value": "Cra 73B #75-171"
+                },
+                {
+                  "key": "deliveryCity",
+                  "value": "Medellin"
+                }
+              ]
+            },
+            "description": "Calcula el desglose de tarifa base, producto y delivery dinamico."
+          }
+        },
+        {
+          "name": "5.2 Checkout Directo de Transaccion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data.id) pm.collectionVariables.set(\"transactionId\", data.id);",
+                  "if (data.reference) pm.collectionVariables.set(\"transactionReference\", data.reference);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"customerFullName\": \"Juan Perez Evaluador\",\n  \"customerEmail\": \"juan.perez@example.com\",\n  \"customerPhone\": \"3001234567\",\n  \"deliveryAddress\": \"Cra 73B #75-171\",\n  \"deliveryCity\": \"Medellin\",\n  \"deliveryNotes\": \"Entregar en mano\",\n  \"acceptanceToken\": \"token_aceptacion\",\n  \"cardToken\": \"tok_test_card_approved\",\n  \"installments\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "checkout"
+              ]
+            },
+            "description": "Crea y procesa una transaccion directa."
+          }
+        },
+        {
+          "name": "5.3 Consultar Transaccion por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/{{transactionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "{{transactionId}}"
+              ]
+            },
+            "description": "Obtiene el detalle y estado de una transaccion por su ID."
+          }
+        },
+        {
+          "name": "5.4 Consultar Transaccion por Referencia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/reference/{{transactionReference}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "reference",
+                "{{transactionReference}}"
+              ]
+            },
+            "description": "Obtiene el detalle de una transaccion utilizando su numero de referencia unico."
+          }
+        }
+      ]
+    }
+  ]
+}

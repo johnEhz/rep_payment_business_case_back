@@ -2,38 +2,165 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  OnModuleInit,
-  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, EntityManager } from 'typeorm';
+import { Repository, EntityManager, DataSource } from 'typeorm';
 import { Product } from './entities/product.entity';
+import {
+  StockReservation,
+  ReservationStatus,
+} from '../inventory/entities/stock-reservation.entity';
+import {
+  ProductResponseDto,
+  ProductDetailResponseDto,
+  PaginatedProductsResponseDto,
+  toProductResponseDto,
+  toProductDetailResponseDto,
+} from './dto/product-response.dto';
 
 @Injectable()
-export class ProductsService implements OnModuleInit {
-  private readonly logger = new Logger(ProductsService.name);
-
+export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async onModuleInit() {
-    await this.seedProducts();
-  }
+  async findAll(filters?: {
+    categoryId?: string;
+    brandId?: string;
+    category?: string;
+    brand?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    inStockOnly?: boolean;
+  }): Promise<PaginatedProductsResponseDto> {
+    const page = Math.max(1, Number(filters?.page || 1));
+    const limit = Math.max(1, Math.min(100, Number(filters?.limit || 12)));
+    const skip = (page - 1) * limit;
 
-  async findAll(): Promise<Product[]> {
-    return this.productRepository.find({
-      order: { createdAt: 'ASC' },
+    const qb = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.brand', 'brand')
+      .orderBy('product.createdAt', 'ASC');
+
+    if (filters?.categoryId) {
+      qb.andWhere('product.categoryId = :categoryId', { categoryId: filters.categoryId });
+    }
+    if (filters?.category) {
+      qb.andWhere('(category.slug = :cat OR LOWER(category.name) = LOWER(:cat))', { cat: filters.category });
+    }
+    if (filters?.brandId) {
+      qb.andWhere('product.brandId = :brandId', { brandId: filters.brandId });
+    }
+    if (filters?.brand) {
+      qb.andWhere('(brand.slug = :brand OR LOWER(brand.name) = LOWER(:brand))', { brand: filters.brand });
+    }
+    if (filters?.search && filters.search.trim()) {
+      qb.andWhere('(LOWER(product.name) LIKE LOWER(:s) OR LOWER(product.description) LIKE LOWER(:s))', {
+        s: `%${filters.search.trim()}%`,
+      });
+    }
+    if (typeof filters?.minPrice === 'number' && !isNaN(filters.minPrice)) {
+      qb.andWhere('product.priceInCents >= :minPrice', { minPrice: filters.minPrice });
+    }
+    if (typeof filters?.maxPrice === 'number' && !isNaN(filters.maxPrice)) {
+      qb.andWhere('product.priceInCents <= :maxPrice', { maxPrice: filters.maxPrice });
+    }
+    if (filters?.inStockOnly) {
+      qb.andWhere('product.stock > 0');
+    }
+
+    const [products, total] = await qb
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    if (products.length === 0) {
+      return {
+        data: [],
+        total,
+        page,
+        limit,
+        totalPages,
+      };
+    }
+
+    // Calcular el stock disponible en tiempo real descontando reservas activas vigentes
+    const now = new Date();
+    const productIds = products.map((p) => p.id);
+    const activeReservations = await this.dataSource
+      .getRepository(StockReservation)
+      .createQueryBuilder('r')
+      .select('r.productId', 'productId')
+      .addSelect('SUM(r.quantity)', 'totalReserved')
+      .where('r.status = :status', { status: ReservationStatus.ACTIVE })
+      .andWhere('r.expiresAt > :now', { now })
+      .andWhere('r.productId IN (:...productIds)', { productIds })
+      .groupBy('r.productId')
+      .getRawMany();
+
+    const reservedMap = new Map<string, number>();
+    for (const r of activeReservations) {
+      reservedMap.set(r.productId, Number(r.totalReserved || 0));
+    }
+
+    const data = products.map((p) => {
+      const reserved = reservedMap.get(p.id) || 0;
+      const availableStock = Math.max(0, p.stock - reserved);
+      return toProductResponseDto(p, availableStock);
     });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 
-  async findOne(id: string): Promise<Product> {
-    const product = await this.productRepository.findOne({ where: { id } });
+  async findOne(idOrSlug: string): Promise<ProductDetailResponseDto> {
+    const product = await this.findEntityByIdOrSlug(idOrSlug);
+    const now = new Date();
+    const activeReserved = await this.dataSource
+      .getRepository(StockReservation)
+      .createQueryBuilder('r')
+      .select('COALESCE(SUM(r.quantity), 0)', 'total')
+      .where('r.productId = :productId', { productId: product.id })
+      .andWhere('r.status = :status', { status: ReservationStatus.ACTIVE })
+      .andWhere('r.expiresAt > :now', { now })
+      .getRawOne();
+
+    const reserved = Number(activeReserved?.total || 0);
+    const availableStock = Math.max(0, product.stock - reserved);
+    return toProductDetailResponseDto(product, availableStock);
+  }
+
+  async findEntityByIdOrSlug(idOrSlug: string): Promise<Product> {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+    const where = isUuid
+      ? [{ id: idOrSlug }, { slug: idOrSlug }]
+      : [{ slug: idOrSlug }, { name: idOrSlug }];
+
+    const product = await this.productRepository.findOne({
+      where,
+      relations: { category: true, brand: true },
+    });
     if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
+      throw new NotFoundException(`Product "${idOrSlug}" not found`);
     }
     return product;
+  }
+
+  async findEntityById(id: string): Promise<Product> {
+    return this.findEntityByIdOrSlug(id);
   }
 
   /**
@@ -44,10 +171,11 @@ export class ProductsService implements OnModuleInit {
     productId: string,
     quantity: number,
   ): Promise<Product> {
-    const product = await manager.findOne(Product, {
-      where: { id: productId },
-      lock: { mode: 'pessimistic_write' },
-    });
+    const product = await manager
+      .createQueryBuilder(Product, 'p')
+      .setLock('pessimistic_write')
+      .where('p.id = :id', { id: productId })
+      .getOne();
 
     if (!product) {
       throw new NotFoundException(`Product with ID ${productId} not found`);
@@ -61,45 +189,5 @@ export class ProductsService implements OnModuleInit {
 
     product.stock -= quantity;
     return manager.save(Product, product);
-  }
-
-  /**
-   * Semilla inicial con productos para el showcase de la tienda
-   */
-  private async seedProducts() {
-    try {
-      const count = await this.productRepository.count();
-      if (count === 0) {
-        this.logger.log('Seeding initial products catalogue...');
-        const initialProducts = this.productRepository.create([
-          {
-            name: 'Auriculares Inalámbricos Pro Sound',
-            description: 'Auriculares Bluetooth con cancelación activa de ruido, 30h de batería y sonido envolvente de alta fidelidad.',
-            priceInCents: 15000000, // $150.000 COP
-            stock: 12,
-            imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
-          },
-          {
-            name: 'Smartwatch Titan Edition',
-            description: 'Reloj inteligente con monitor de ritmo cardíaco, GPS integrado, resistente al agua 50m y pantalla AMOLED.',
-            priceInCents: 28000000, // $280.000 COP
-            stock: 8,
-            imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80',
-          },
-          {
-            name: 'Teclado Mecánico RGB Custom',
-            description: 'Teclado mecánico con switches intercambiables en caliente, teclas PBT de doble inyección y retroiluminación RGB.',
-            priceInCents: 21000000, // $210.000 COP
-            stock: 5,
-            imageUrl: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80',
-          },
-        ]);
-
-        await this.productRepository.save(initialProducts);
-        this.logger.log('Initial products created successfully.');
-      }
-    } catch (error: any) {
-      this.logger.warn(`Could not seed products automatically: ${error?.message || error}`);
-    }
   }
 }

@@ -1,0 +1,207 @@
+[
+  {
+    "name": "Auriculares Inalámbricos Pro Sound",
+    "description": "Auriculares Bluetooth con cancelación activa de ruido, 30h de batería y sonido envolvente de alta fidelidad.",
+    "priceInCents": 15000000,
+    "stock": 18,
+    "imageUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "audio-sonido",
+    "brandSlug": "prosound"
+  },
+  {
+    "name": "Smartwatch Titan Edition",
+    "description": "Reloj inteligente con monitor de ritmo cardíaco, GPS integrado, resistente al agua 50m y pantalla AMOLED.",
+    "priceInCents": 28000000,
+    "stock": 15,
+    "imageUrl": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1510017803434-a899398421b3?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "wearables-relojes",
+    "brandSlug": "titantech"
+  },
+  {
+    "name": "Teclado Mecánico RGB Custom",
+    "description": "Teclado mecánico con switches intercambiables en caliente, teclas PBT de doble inyección y retroiluminación RGB.",
+    "priceInCents": 21000000,
+    "stock": 12,
+    "imageUrl": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1595225476474-87563907a212?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "gaming-perifericos",
+    "brandSlug": "mechkeys"
+  },
+  {
+    "name": "Cargador Rápido GaN 65W Pro",
+    "description": "Cargador ultracompacto con tecnología GaN, doble puerto USB-C y USB-A, compatible con carga rápida universal.",
+    "priceInCents": 9500000,
+    "stock": 25,
+    "imageUrl": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1622445262464-84b14e074523?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "accesorios-carga",
+    "brandSlug": "voltpower"
+  },
+  {
+    "name": "Mouse Gamer Ergonómico Ultra-Light",
+    "description": "Mouse gamer inalámbrico con sensor óptico de 26.000 DPI, switches ópticos de alta velocidad y peso ultraligero de 58g.",
+    "priceInCents": 18000000,
+    "stock": 22,
+    "imageUrl": "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1626771747805-4f40f2ceebfc?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "gaming-perifericos",
+    "brandSlug": "mechkeys"
+  },
+  {
+    "name": "Altavoz Bluetooth Portátil Waterproof",
+    "description": "Altavoz portátil con sonido 360°, certificación IPX7 resistente al agua, 24 horas de reproducción continua y conectividad multipunto.",
+    "priceInCents": 12000000,
+    "stock": 16,
+    "imageUrl": "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1589003077984-894e133dabab?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "audio-sonido",
+    "brandSlug": "prosound"
+  },
+  {
+    "name": "Power Bank Magnético 10.000mAh Slim",
+    "description": "Batería externa magnética inalámbrica con carga rápida de 20W, soporte plegable integrado y perfil ultrafino para viajes.",
+    "priceInCents": 8500000,
+    "stock": 28,
+    "imageUrl": "https://images.unsplash.com/photo-1609592424367-e9a8d9b23b36?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1609592424367-e9a8d9b23b36?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "accesorios-carga",
+    "brandSlug": "voltpower"
+  },
+  {
+    "name": "Cámara de Acción 4K Ultra HD Waterproof",
+    "description": "Cámara sumergible hasta 30m, sensor 4K a 60fps con estabilización giroscópica de 6 ejes, pantalla táctil dual y control Wi-Fi.",
+    "priceInCents": 32000000,
+    "stock": 14,
+    "imageUrl": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "fotografia-video",
+    "brandSlug": "luminavision"
+  },
+  {
+    "name": "Estabilizador Gimbal 3 Ejes Smartphone",
+    "description": "Gimbal motorizado con seguimiento facial por inteligencia artificial, rueda de control de enfoque y autonomía de 12 horas.",
+    "priceInCents": 26000000,
+    "stock": 10,
+    "imageUrl": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "fotografia-video",
+    "brandSlug": "luminavision"
+  },
+  {
+    "name": "Bombilla LED Inteligente RGB Wi-Fi",
+    "description": "Foco inteligente con 16 millones de colores, control de intensidad, sincronización musical y compatibilidad con Alexa y Google Home.",
+    "priceInCents": 6500000,
+    "stock": 30,
+    "imageUrl": "https://images.unsplash.com/photo-1550985616-10810253b84d?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1550985616-10810253b84d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "smart-home",
+    "brandSlug": "apexsmart"
+  },
+  {
+    "name": "Enchufe Inteligente Wi-Fi Energy Monitor",
+    "description": "Tomacorriente con monitoreo de consumo eléctrico en tiempo real, programación horaria, modo ausente y protección contra sobrecargas.",
+    "priceInCents": 5500000,
+    "stock": 26,
+    "imageUrl": "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "smart-home",
+    "brandSlug": "apexsmart"
+  },
+  {
+    "name": "Micrófono Condensador USB Studio Pro",
+    "description": "Micrófono cardioide para streaming y podcasts con frecuencia de muestreo de 192kHz/24bit, botón táctil de silencio y soporte amortiguador.",
+    "priceInCents": 19000000,
+    "stock": 12,
+    "imageUrl": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "audio-sonido",
+    "brandSlug": "prosound"
+  },
+  {
+    "name": "Monitor Gaming 27 Pulgadas QHD 165Hz",
+    "description": "Monitor para juegos con panel IPS rápido, resolución 2560x1440 QHD, 1ms GtG, HDR400 y soporte ergonómico ajustable.",
+    "priceInCents": 85000000,
+    "stock": 8,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "gaming-perifericos",
+    "brandSlug": "mechkeys"
+  },
+  {
+    "name": "Smartband Fitness Tracker Pro Series",
+    "description": "Banda deportiva ultraligera con pantalla AMOLED curva de 1.62\", monitoreo continuo de oxígeno en sangre SpO2 y batería para 14 días.",
+    "priceInCents": 14500000,
+    "stock": 20,
+    "imageUrl": "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1510017803434-a899398421b3?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "wearables-relojes",
+    "brandSlug": "titantech"
+  },
+  {
+    "name": "Hub USB-C 8 en 1 Multipuerto Aluminio",
+    "description": "Estación de acoplamiento USB-C con salida HDMI 4K a 60Hz, 3 puertos USB 3.0, Ethernet Gigabit, ranuras SD/MicroSD y PD de 100W.",
+    "priceInCents": 11500000,
+    "stock": 24,
+    "imageUrl": "https://images.unsplash.com/photo-1588508065123-287b28e013da?w=800&auto=format&fit=crop&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1588508065123-287b28e013da?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80"
+    ],
+    "categorySlug": "accesorios-carga",
+    "brandSlug": "voltpower"
+  }
+]

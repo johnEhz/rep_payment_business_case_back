@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Audio & Sonido",
+    "slug": "audio-sonido",
+    "description": "Auriculares, altavoces y sistemas de audio de alta fidelidad."
+  },
+  {
+    "name": "Wearables & Relojes",
+    "slug": "wearables-relojes",
+    "description": "Smartwatches, pulseras de actividad y dispositivos inteligentes."
+  },
+  {
+    "name": "Gaming & Periféricos",
+    "slug": "gaming-perifericos",
+    "description": "Teclados mecánicos, ratones y accesorios para gaming y productividad."
+  },
+  {
+    "name": "Accesorios & Carga",
+    "slug": "accesorios-carga",
+    "description": "Cargadores rápidos, cables de alta durabilidad y adaptadores."
+  },
+  {
+    "name": "Fotografía & Video",
+    "slug": "fotografia-video",
+    "description": "Cámaras de acción, estabilizadores gimbal y accesorios de grabación profesional."
+  },
+  {
+    "name": "Smart Home & Domótica",
+    "slug": "smart-home",
+    "description": "Iluminación inteligente, enchufes conectados y sensores de automatización para el hogar."
+  }
+]

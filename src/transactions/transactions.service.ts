@@ -10,39 +10,63 @@ import { ConfigService } from '@nestjs/config';
 import { Transaction, TransactionStatus } from './entities/transaction.entity';
 import { ProductsService } from '../products/products.service';
 import { GatewayService } from '../gateway/gateway.service';
+import { DeliveryService } from '../delivery/delivery.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { FeeCalculationResponseDto } from './dto/fee-calculation.dto';
+import {
+  TransactionResponseDto,
+  toTransactionResponseDto,
+} from './dto/transaction-response.dto';
 
 @Injectable()
 export class TransactionsService {
   private readonly logger = new Logger(TransactionsService.name);
   private readonly baseFeeInCents: number;
-  private readonly deliveryFeeInCents: number;
 
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
     private readonly productsService: ProductsService,
     private readonly gatewayService: GatewayService,
+    private readonly deliveryService: DeliveryService,
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
   ) {
     this.baseFeeInCents = Number(this.configService.get<number>('BASE_FEE_IN_CENTS', 300000));
-    this.deliveryFeeInCents = Number(this.configService.get<number>('DELIVERY_FEE_IN_CENTS', 1000000));
   }
 
   /**
-   * Calcula el resumen de cobro (producto + base fee + delivery fee)
+   * Calcula el resumen de cobro dinámico:
+   * Producto + Tarifa Base + Delivery Dinámico (distancia con Mapbox + valor compra + descuento)
    */
-  async calculateFees(productId: string, quantity = 1): Promise<FeeCalculationResponseDto> {
+  async calculateFees(
+    productId: string,
+    quantity = 1,
+    deliveryAddress?: string,
+    deliveryCity = 'Medellín',
+  ): Promise<FeeCalculationResponseDto> {
     const product = await this.productsService.findOne(productId);
     const productPriceInCents = Number(product.priceInCents) * quantity;
-    const totalAmountInCents = productPriceInCents + this.baseFeeInCents + this.deliveryFeeInCents;
+
+    // Cálculo dinámico de delivery mediante Mapbox y reglas de negocio
+    const deliveryCalc = await this.deliveryService.calculateDeliveryFee(
+      productPriceInCents,
+      deliveryAddress,
+      deliveryCity,
+    );
+
+    const totalAmountInCents =
+      productPriceInCents + this.baseFeeInCents + deliveryCalc.finalDeliveryFeeInCents;
 
     return {
       productPriceInCents,
       baseFeeInCents: this.baseFeeInCents,
-      deliveryFeeInCents: this.deliveryFeeInCents,
+      deliveryFeeInCents: deliveryCalc.finalDeliveryFeeInCents,
+      deliveryDistanceKm: deliveryCalc.distanceKm,
+      deliveryDistanceCostInCents: deliveryCalc.distanceCostInCents,
+      deliveryValueCostInCents: deliveryCalc.valueCostInCents,
+      deliveryDiscountInCents: deliveryCalc.discountInCents,
+      deliveryAppliedRules: deliveryCalc.appliedRules,
       totalAmountInCents,
       currency: 'COP',
     };
@@ -51,13 +75,13 @@ export class TransactionsService {
   /**
    * Flujo principal de pago:
    * 1. Valida el producto y el stock disponible.
-   * 2. Calcula totales.
-   * 3. Crea la transacción en estado PENDING con referencia única.
+   * 2. Calcula totales y delivery dinámico según dirección de entrega.
+   * 3. Crea la transacción en estado PENDING con referencia única y desglose de delivery.
    * 4. Llama a la pasarela de pagos Sandbox.
    * 5. Actualiza el estado según respuesta de la pasarela.
    * 6. Si es APPROVED, descuenta el stock de forma transaccional.
    */
-  async processPayment(dto: CreatePaymentDto): Promise<Transaction> {
+  async processPayment(dto: CreatePaymentDto): Promise<TransactionResponseDto> {
     const quantity = dto.quantity || 1;
     const product = await this.productsService.findOne(dto.productId);
 
@@ -67,28 +91,25 @@ export class TransactionsService {
       );
     }
 
-    const fees = await this.calculateFees(dto.productId, quantity);
+    const fees = await this.calculateFees(
+      dto.productId,
+      quantity,
+      dto.deliveryAddress,
+      dto.deliveryCity,
+    );
     const reference = `TX-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-    let transaction = this.transactionRepository.create({
+    const txData: Partial<Transaction> = {
       reference,
-      status: TransactionStatus.PENDING,
-      productAmountInCents: fees.productPriceInCents,
-      baseFeeInCents: fees.baseFeeInCents,
-      deliveryFeeInCents: fees.deliveryFeeInCents,
-      totalAmountInCents: fees.totalAmountInCents,
+      amountInCents: fees.totalAmountInCents,
       currency: fees.currency,
-      customerFullName: dto.customerFullName,
-      customerEmail: dto.customerEmail,
-      customerPhone: dto.customerPhone,
-      deliveryAddress: dto.deliveryAddress,
-      deliveryCity: dto.deliveryCity,
-      deliveryNotes: dto.deliveryNotes,
-      productId: dto.productId,
-      quantity,
-    });
-
-    transaction = await this.transactionRepository.save(transaction);
+      paymentMethod: 'CARD',
+      installments: dto.installments || 1,
+      status: TransactionStatus.PENDING,
+    };
+    let transaction: Transaction = await this.transactionRepository.save(
+      this.transactionRepository.create(txData),
+    );
     this.logger.log(`Created transaction ${transaction.id} with reference ${reference} in PENDING status`);
 
     try {
@@ -154,10 +175,10 @@ export class TransactionsService {
     return this.findOne(transaction.id);
   }
 
-  async findOne(id: string): Promise<Transaction> {
+  async findEntityById(id: string): Promise<Transaction> {
     const transaction = await this.transactionRepository.findOne({
       where: { id },
-      relations: { product: true },
+      relations: { order: { items: true, delivery: true } },
     });
     if (!transaction) {
       throw new NotFoundException(`Transaction with ID ${id} not found`);
@@ -165,14 +186,31 @@ export class TransactionsService {
     return transaction;
   }
 
-  async findByReference(reference: string): Promise<Transaction> {
+  async findOne(id: string): Promise<TransactionResponseDto> {
+    const transaction = await this.findEntityById(id);
+    return toTransactionResponseDto(transaction);
+  }
+
+  async findByReference(reference: string): Promise<TransactionResponseDto> {
     const transaction = await this.transactionRepository.findOne({
       where: { reference },
-      relations: { product: true },
+      relations: { order: { items: true, delivery: true } },
     });
     if (!transaction) {
       throw new NotFoundException(`Transaction with reference ${reference} not found`);
     }
-    return transaction;
+    return toTransactionResponseDto(transaction);
+  }
+
+  async findByOrderId(orderId: string): Promise<TransactionResponseDto | null> {
+    const transaction = await this.transactionRepository.findOne({
+      where: { orderId },
+      relations: { order: { items: true, delivery: true } },
+      order: { createdAt: 'DESC' },
+    });
+    if (!transaction) {
+      return null;
+    }
+    return toTransactionResponseDto(transaction);
   }
 }
