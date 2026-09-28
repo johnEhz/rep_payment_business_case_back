@@ -8,7 +8,17 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000",
+      "value": "https://d2fwq2zkaxox3s.cloudfront.net/api",
+      "type": "string"
+    },
+    {
+      "key": "webhookUrl",
+      "value": "https://d2fwq2zkaxox3s.cloudfront.net/webhooks/gateway",
+      "type": "string"
+    },
+    {
+      "key": "localBaseUrl",
+      "value": "http://localhost:3000/api",
       "type": "string"
     },
     {
@@ -68,6 +78,28 @@
     }
   ],
   "item": [
+    {
+      "name": "0. Health Check",
+      "item": [
+        {
+          "name": "0.1 Health Check (CloudFront HTTPS / ALB)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Verifica la disponibilidad del backend a traves de Amazon CloudFront y el Application Load Balancer."
+          }
+        }
+      ]
+    },
     {
       "name": "1. Catalogo & Productos",
       "description": "Consultas del catalogo de productos con soporte para relaciones de categorias y marcas, galerias de multiples imagenes y stock en tiempo real.",
@@ -535,6 +567,67 @@
             },
             "description": "Demuestra el control de acceso: si un tercero intenta consultar una orden sin el token correcto, el sistema responde con 401 Unauthorized."
           }
+        },
+        {
+          "name": "3.7 Consultar Estado de Pago (Payment Status Reactivo)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/payment-status/{{orderNumber}}?token={{accessToken}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "payment-status",
+                "{{orderNumber}}"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}"
+                }
+              ]
+            },
+            "description": "Consulta el estado de la orden y transaccion con validacion reactiva Just-In-Time contra la pasarela de pagos."
+          }
+        },
+        {
+          "name": "3.8 Consultar Orden Activa de Sesion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checkout/active-order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout",
+                "active-order"
+              ]
+            },
+            "description": "Consulta si existe una orden en curso con transacciones pendientes en la sesion."
+          }
+        },
+        {
+          "name": "3.9 Cancelar Orden Activa de Sesion",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checkout/cancel-active-order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout",
+                "cancel-active-order"
+              ]
+            },
+            "description": "Cancela la orden activa de la sesion y libera el inventario reservado."
+          }
         }
       ]
     },
@@ -594,13 +687,9 @@
               "raw": "{\n  \"event\": \"transaction.updated\",\n  \"data\": {\n    \"transaction\": {\n      \"id\": \"gw-tx-webhook-sim-01\",\n      \"status\": \"APPROVED\",\n      \"amount_in_cents\": 15400000,\n      \"reference\": \"{{orderNumber}}-sim\",\n      \"customer_email\": \"juan.perez@example.com\"\n    }\n  },\n  \"sent_at\": \"2026-09-24T22:30:00Z\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/payments/webhook",
+              "raw": "{{webhookUrl}}",
               "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payments",
-                "webhook"
+                "{{webhookUrl}}"
               ]
             },
             "description": "Endpoint para recibir webhooks de la pasarela de pagos. Implementa verificacion de idempotencia."

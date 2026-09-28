@@ -34,11 +34,11 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Prefijo global de API (excluyendo webhooks para permitir acceso directo de la pasarela)
   app.setGlobalPrefix('api', {
     exclude: [
       { path: 'webhooks/gateway', method: RequestMethod.ALL },
       { path: 'webhooks/payment', method: RequestMethod.ALL },
+      { path: 'payments/webhook', method: RequestMethod.ALL },
     ],
   });
 

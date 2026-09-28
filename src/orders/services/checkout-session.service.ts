@@ -7,6 +7,7 @@ import { Order, OrderStatus } from '../entities/order.entity';
 import { OrderItem } from '../entities/order-item.entity';
 import { InventoryService } from '../../inventory/inventory.service';
 import { ReservationStatus } from '../../inventory/entities/stock-reservation.entity';
+import { Transaction, TransactionStatus } from '../../transactions/entities/transaction.entity';
 
 export const COOKIE_CHECKOUT_SESSION = 'checkout_session_id';
 export const HEADER_CHECKOUT_SESSION = 'x-checkout-session-id';
@@ -166,9 +167,16 @@ export class CheckoutSessionService {
     return true;
   }
 
-  /**
-   * Cancela la orden pendiente activa del usuario y libera su reserva de inventario
-   */
+  async hasPendingTransaction(orderId: string): Promise<boolean> {
+    const pendingTx = await this.orderRepository.manager.getRepository(Transaction).findOne({
+      where: {
+        orderId,
+        status: TransactionStatus.PENDING,
+      },
+    });
+    return Boolean(pendingTx);
+  }
+
   async cancelActiveOrder(sessionId: string): Promise<boolean> {
     const activeOrder = await this.findActivePendingOrder(sessionId);
     if (!activeOrder) return false;
@@ -182,7 +190,7 @@ export class CheckoutSessionService {
       ReservationStatus.RELEASED,
     );
 
-    this.logger.log(`User cancelled active pending order ${activeOrder.orderNumber} for session ${sessionId}. Stock released.`);
+    this.logger.log(`Active pending order ${activeOrder.orderNumber} cancelled for session ${sessionId}.`);
     return true;
   }
 }

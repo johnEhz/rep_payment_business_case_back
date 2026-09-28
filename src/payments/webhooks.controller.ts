@@ -23,12 +23,10 @@ export class WebhooksController {
     private readonly paymentGateway: IPaymentGateway,
   ) {}
 
-  /**
-   * Endpoint oficial del Webhook de la pasarela: POST /webhooks/gateway, /webhooks/payment
-   * Procesa eventos 'transaction.updated' enviados asíncronamente por la pasarela de pagos.
-   */
   @Post('webhooks/gateway')
   @Post('webhooks/payment')
+  @Post('payments/webhook')
+  @Post('api/payments/webhook')
   @HttpCode(HttpStatus.OK)
   async handleGatewayWebhook(@Body() payload: any) {
     this.logger.log(`[GatewayWebhook] Received webhook event: ${payload?.event || 'unknown'}`);

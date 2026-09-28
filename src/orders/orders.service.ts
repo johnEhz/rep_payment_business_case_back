@@ -55,14 +55,17 @@ export class OrdersService {
     return this.orderPaymentService.payOrder(dto);
   }
 
-  /**
-   * 4. Recuperación de la orden pendiente activa no expirada para la sesión actual
-   */
   async getActivePendingOrder(
     sessionId: string,
   ): Promise<{ hasActiveOrder: boolean; order?: OrderResponseDto; remainingSeconds?: number }> {
     const activeOrder = await this.checkoutSessionService.findActivePendingOrder(sessionId);
     if (!activeOrder) {
+      return { hasActiveOrder: false };
+    }
+
+    const hasPendingTx = await this.checkoutSessionService.hasPendingTransaction(activeOrder.id);
+    if (!hasPendingTx) {
+      await this.checkoutSessionService.cancelActiveOrder(sessionId);
       return { hasActiveOrder: false };
     }
 

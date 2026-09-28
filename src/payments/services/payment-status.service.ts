@@ -120,15 +120,12 @@ export class PaymentStatusService {
       transaction.statusMessage = statusMessage;
     }
 
-    // 3. CONTROL DE IDEMPOTENCIA:
-    // Si la orden ya está PAID o DELIVERED y la transacción ya está APPROVED, no repetir efectos secundarios
     const isOrderAlreadyApproved = order.status === OrderStatus.PAID || order.status === OrderStatus.DELIVERED;
     if (status === 'APPROVED' && isOrderAlreadyApproved) {
       this.logger.log(
         `[PaymentStatusService] Idempotency: Order ${order.orderNumber} already marked as ${order.status}. Ensuring invoice exists.`,
       );
 
-      // Asegurar factura de forma idempotente
       let invoice = await this.invoiceRepository.findOne({ where: { orderId: order.id } });
       if (!invoice) {
         invoice = await this.createInvoiceForOrder(order, transaction);
@@ -144,9 +141,7 @@ export class PaymentStatusService {
       };
     }
 
-    // 4. TRANSICIÓN A ESTADO APPROVED
     if (status === 'APPROVED') {
-      // VALIDACIÓN FINANCIERA CRÍTICA: Comparar monto y divisa contra la orden
       const rawAmount = rawData?.amount_in_cents ?? rawData?.amountInCents;
       if (rawAmount !== undefined && rawAmount !== null) {
         const receivedAmount = Number(rawAmount);
@@ -311,7 +306,6 @@ export class PaymentStatusService {
       };
     }
 
-    // 5. TRANSICIÓN A ESTADO DECLINED / ERROR / VOIDED
     if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
       const finalTxStatus =
         status === 'DECLINED'
@@ -383,7 +377,6 @@ export class PaymentStatusService {
       };
     }
 
-    // 6. TRANSICIÓN A ESTADO PENDING
     if (status === 'PENDING') {
       transaction.status = TransactionStatus.PENDING;
       if (providerTransactionId) {
@@ -403,7 +396,6 @@ export class PaymentStatusService {
       };
     }
 
-    // 7. TRANSICIÓN A ESTADO EXPIRED / CANCELLED
     if (status === 'EXPIRED' || status === 'CANCELLED') {
       transaction.status = status === 'EXPIRED' ? TransactionStatus.EXPIRED : TransactionStatus.CANCELLED;
       await this.transactionRepository.save(transaction);
