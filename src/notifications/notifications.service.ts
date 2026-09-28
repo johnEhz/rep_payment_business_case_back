@@ -167,6 +167,14 @@ export class NotificationsService {
       style: 'currency',
       currency: 'COP',
     });
+    const formattedTax = (Number(order.taxAmount || 0) / 100).toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+    });
+    const formattedDiscount = (Number(order.discountAmount || 0) / 100).toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+    });
 
     const itemsSummary = items
       .map(
@@ -186,8 +194,11 @@ export class NotificationsService {
       itemsSummary,
       deliveryAddress: order.deliveryAddress,
       deliveryCity: order.deliveryCity,
-      deliveryFeeFormatted: formattedDelivery,
       subtotalFormatted: formattedSubtotal,
+      deliveryFeeFormatted: formattedDelivery,
+      taxFormatted: formattedTax,
+      ivaFormatted: formattedTax,
+      discountFormatted: formattedDiscount,
       totalFormatted: formattedTotal,
       trackingUrl: `${frontendUrl}/orders/track/${order.orderNumber}?token=${order.accessToken}`,
     };
@@ -207,6 +218,18 @@ export class NotificationsService {
       style: 'currency',
       currency: 'COP',
     });
+    const formattedSubtotal = (Number(order.subtotalAmount) / 100).toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+    });
+    const formattedDelivery = (Number(order.deliveryFeeAmount) / 100).toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+    });
+    const formattedTax = (Number(order.taxAmount || 0) / 100).toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+    });
 
     const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3001');
 
@@ -214,6 +237,10 @@ export class NotificationsService {
       customerName: order.customerName,
       orderNumber: order.orderNumber,
       transactionReference: transaction?.gatewayTransactionId || transaction?.reference || order.orderNumber,
+      subtotalFormatted: formattedSubtotal,
+      deliveryFeeFormatted: formattedDelivery,
+      taxFormatted: formattedTax,
+      ivaFormatted: formattedTax,
       totalFormatted: formattedTotal,
       deliveryAddress: order.deliveryAddress,
       deliveryCity: order.deliveryCity,

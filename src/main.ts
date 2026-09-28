@@ -20,8 +20,8 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Permitir herramientas locales / Postman / Webhooks sin cabecera origin
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Permitir herramientas locales / Postman / Webhooks sin cabecera origin, y dominios Amplify
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.amplifyapp.com')) {
         return callback(null, true);
       }
       return callback(new Error(`Acceso bloqueado por política de CORS: ${origin}`), false);
@@ -44,6 +44,16 @@ async function bootstrap() {
 
   // Redirección directa para enlaces de tracking y payment-status sin prefijo /api
   const expressInstance = app.getHttpAdapter().getInstance();
+
+  // Endpoint de Health Check para AWS Application Load Balancer y Docker
+  expressInstance.get(['/api/health', '/health', '/'], (req: any, res: any) => {
+    return res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  });
+
   expressInstance.get('/orders/track/:orderNumber', (req: any, res: any) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     const token = req.query?.token ? `?token=${encodeURIComponent(req.query.token)}` : '';

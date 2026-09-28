@@ -3,6 +3,7 @@ import {
   Logger,
   NotFoundException,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -16,6 +17,8 @@ import { AuditLogService } from '../../security/services/audit-log.service';
 import { AuditSeverity } from '../../security/entities/audit-log.entity';
 import { StockReservation, ReservationStatus } from '../../inventory/entities/stock-reservation.entity';
 import { OrderTrackingService } from '../../orders/services/order-tracking.service';
+import { PAYMENT_GATEWAY } from '../interfaces/payment-gateway.interface';
+import type { IPaymentGateway } from '../interfaces/payment-gateway.interface';
 
 export interface ApplyTransactionStatusParams {
   providerTransactionId?: string;
@@ -43,6 +46,8 @@ export class PaymentStatusService {
     private readonly auditLogService: AuditLogService,
     private readonly orderTrackingService: OrderTrackingService,
     private readonly dataSource: DataSource,
+    @Inject(PAYMENT_GATEWAY)
+    private readonly paymentGateway: IPaymentGateway,
   ) {}
 
   /**
@@ -448,10 +453,53 @@ export class PaymentStatusService {
     }
 
     // Buscar la última transacción registrada
-    const latestTransaction = await this.transactionRepository.findOne({
+    let latestTransaction = await this.transactionRepository.findOne({
       where: { orderId: order.id },
       order: { createdAt: 'DESC' },
     });
+
+    if (latestTransaction?.status === TransactionStatus.PENDING && latestTransaction.gatewayTransactionId) {
+      try {
+        const gatewayResult = await this.paymentGateway.getTransactionStatus(
+          latestTransaction.gatewayTransactionId,
+        );
+
+        if (gatewayResult?.status && gatewayResult.status !== 'PENDING') {
+          this.logger.log(
+            `[PaymentStatusService] JIT status poll: Gateway resolved ${latestTransaction.reference} to ${gatewayResult.status}. Applying...`,
+          );
+
+          await this.applyTransactionStatus({
+            providerTransactionId: latestTransaction.gatewayTransactionId,
+            reference: latestTransaction.reference,
+            status: gatewayResult.status as any,
+            statusMessage: gatewayResult.statusMessage || gatewayResult.errorMessage,
+            rawData: gatewayResult.rawResponse,
+            source: 'POLLING',
+          });
+
+          // Refrescar datos actualizados de la orden y transacción
+          const reloadedOrder = await this.orderRepository.findOne({
+            where: { id: order.id },
+            relations: { delivery: true },
+          });
+          if (reloadedOrder) {
+            order.status = reloadedOrder.status;
+            order.paidAt = reloadedOrder.paidAt;
+            order.deliveredAt = reloadedOrder.deliveredAt;
+            order.updatedAt = reloadedOrder.updatedAt;
+          }
+
+          latestTransaction = await this.transactionRepository.findOne({
+            where: { id: latestTransaction.id },
+          });
+        }
+      } catch (pollErr: any) {
+        this.logger.warn(
+          `[PaymentStatusService] JIT status poll warning for ${latestTransaction?.reference || 'tx'}: ${pollErr?.message || pollErr}`,
+        );
+      }
+    }
 
     // Buscar si existe una transacción PENDING activa
     const hasPendingTransaction =

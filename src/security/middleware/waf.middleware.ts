@@ -49,6 +49,11 @@ export class WafMiddleware implements NestMiddleware {
   ) {}
 
   use(req: Request, res: Response, next: NextFunction): void {
+    // Bypass inmediato para health checks del AWS Application Load Balancer
+    if (req.path === '/api/health' || req.path === '/health' || req.path === '/' || req.originalUrl.startsWith('/api/health')) {
+      return next();
+    }
+
     const ip = this.ipReputationService.getClientIp(req);
 
     // 1. Verificación previa de IP Bloqueada
