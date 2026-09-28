@@ -6,7 +6,7 @@ import {
   JoinColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Order, bigintTransformer } from './order.entity';
+import { bigintTransformer } from '../../common/transformers/bigint.transformer';
 import { Product } from '../../products/entities/product.entity';
 
 @Entity('order_items')
@@ -17,9 +17,9 @@ export class OrderItem {
   @Column({ type: 'uuid' })
   orderId: string;
 
-  @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
+  @ManyToOne('Order', (order: any) => order.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'orderId' })
-  order: Order;
+  order: any;
 
   @Column({ type: 'uuid' })
   productId: string;

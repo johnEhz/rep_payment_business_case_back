@@ -8,7 +8,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity';
+import type { Order } from '../../orders/entities/order.entity';
 
 export enum TransactionStatus {
   PENDING = 'PENDING',
@@ -30,7 +30,7 @@ export class Transaction {
   @Index()
   orderId: string;
 
-  @ManyToOne(() => Order, (order) => order.transactions, { onDelete: 'CASCADE' })
+  @ManyToOne('Order', (order: any) => order.transactions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'orderId' })
   order: Order;
 

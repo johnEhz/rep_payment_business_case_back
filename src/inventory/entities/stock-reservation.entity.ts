@@ -7,7 +7,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity';
+import type { Order } from '../../orders/entities/order.entity';
 import { Product } from '../../products/entities/product.entity';
 
 export enum ReservationStatus {
@@ -26,7 +26,7 @@ export class StockReservation {
   @Index()
   orderId: string;
 
-  @ManyToOne(() => Order, (order) => order.stockReservations, { onDelete: 'CASCADE' })
+  @ManyToOne('Order', (order: any) => order.stockReservations, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'orderId' })
   order: Order;
 

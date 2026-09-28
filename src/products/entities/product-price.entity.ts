@@ -8,8 +8,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Product } from './product.entity';
-import { bigintTransformer } from '../../orders/entities/order.entity';
+import { bigintTransformer } from '../../common/transformers/bigint.transformer';
 
 @Entity('product_prices')
 export class ProductPrice {
@@ -20,9 +19,9 @@ export class ProductPrice {
   @Index()
   productId: string;
 
-  @ManyToOne(() => Product, (product) => product.prices, { onDelete: 'CASCADE' })
+  @ManyToOne('Product', (product: any) => product.prices, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'productId' })
-  product: Product;
+  product: any;
 
   // Precio final comercial al consumidor en minor units (centavos de COP)
   @Column({ type: 'bigint', transformer: bigintTransformer })

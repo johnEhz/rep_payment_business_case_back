@@ -7,7 +7,7 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { Order } from './order.entity';
+import type { Order } from './order.entity';
 
 @Entity('checkout_sessions')
 export class CheckoutSession {
@@ -25,7 +25,7 @@ export class CheckoutSession {
   @Index()
   expiresAt: Date;
 
-  @OneToMany(() => Order, (order) => order.checkoutSession)
+  @OneToMany('Order', (order: any) => order.checkoutSession)
   orders: Order[];
 
   @CreateDateColumn({ type: 'timestamp with time zone' })

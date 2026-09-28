@@ -16,7 +16,7 @@ import { Brand } from '../../brands/entities/brand.entity';
 import { TaxCategory } from '../../taxes/entities/tax-category.entity';
 import { ProductPrice } from './product-price.entity';
 
-import { bigintTransformer } from '../../orders/entities/order.entity';
+import { bigintTransformer } from '../../common/transformers/bigint.transformer';
 
 export function slugify(text: string): string {
   return text

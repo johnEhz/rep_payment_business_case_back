@@ -8,7 +8,8 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Order, bigintTransformer } from './order.entity';
+import { Order } from './order.entity';
+import { bigintTransformer } from '../../common/transformers/bigint.transformer';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 
 @Entity('invoices')

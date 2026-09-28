@@ -16,26 +16,11 @@ import { Delivery } from '../../delivery/entities/delivery.entity';
 import { CheckoutSession } from './checkout-session.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 
-export enum OrderStatus {
-  CREATED = 'CREATED',
-  PAYMENT_PENDING = 'PAYMENT_PENDING',
-  PENDING_PAYMENT = 'PENDING_PAYMENT',
-  PAID = 'PAID',
-  PREPARING = 'PREPARING',
-  READY_FOR_DELIVERY = 'READY_FOR_DELIVERY',
-  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
-  DELIVERED = 'DELIVERED',
-  PAYMENT_FAILED = 'PAYMENT_FAILED',
-  CANCELLED = 'CANCELLED',
-  EXPIRED = 'EXPIRED',
-  REFUNDED = 'REFUNDED',
-}
+import { OrderStatus } from '../enums/order-status.enum';
+export { OrderStatus };
 
-export const bigintTransformer = {
-  to: (value: number | null | undefined): number | null | undefined => value,
-  from: (value: string | number | null | undefined): number | null | undefined =>
-    value !== null && value !== undefined ? Number(value) : value,
-};
+import { bigintTransformer } from '../../common/transformers/bigint.transformer';
+export { bigintTransformer };
 
 @Entity('orders')
 export class Order {

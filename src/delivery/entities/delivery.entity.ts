@@ -7,7 +7,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity';
+import type { Order } from '../../orders/entities/order.entity';
 
 export enum DeliveryStatus {
   PENDING = 'PENDING',
@@ -27,7 +27,7 @@ export class Delivery {
   @Column({ type: 'uuid', unique: true })
   orderId: string;
 
-  @OneToOne(() => Order, (order) => order.delivery, { onDelete: 'CASCADE' })
+  @OneToOne('Order', (order: any) => order.delivery, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'orderId' })
   order: Order;
 
