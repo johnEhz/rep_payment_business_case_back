@@ -66,12 +66,13 @@ export class OrderPaymentService {
     }
 
     if (order.status === OrderStatus.PAID || order.status === OrderStatus.DELIVERED) {
-      return {
-        success: true,
-        status: 'APPROVED',
-        message: 'Order is already completed and delivered',
-        order: toOrderResponseDto(order),
-      };
+      this.logger.warn(`Intento de pago duplicado rechazado para la orden ${order.orderNumber}`);
+      throw new ConflictException({
+        statusCode: 409,
+        error: 'ORDER_ALREADY_PAID',
+        message: 'Esta orden ya fue pagada exitosamente. No se permite realizar pagos duplicados.',
+        orderNumber: order.orderNumber,
+      });
     }
 
     if (order.status !== OrderStatus.PENDING_PAYMENT && order.status !== OrderStatus.PAYMENT_PENDING) {

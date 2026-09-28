@@ -30,7 +30,7 @@ export class NotificationsService {
 
     this.sourceEmail = this.configService.get<string>(
       'SES_SOURCE_EMAIL',
-      'johnhdz.160@gmail.com',
+      'dynamitesoftware21@gmail.com',
     );
 
     // Si se definen en .env se usan credenciales explícitas;

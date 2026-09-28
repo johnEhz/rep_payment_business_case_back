@@ -78,8 +78,8 @@ GATEWAY_EVENTS_SECRET=stagtest_events_...
 
 MAPBOX_ACCESS_TOKEN=pk.eyJ1I...
 AWS_REGION=us-east-1
-SES_SOURCE_EMAIL=compras@tudominio.com
-SES_SENDER_EMAIL=notificaciones@tudominio.com
+SES_SOURCE_EMAIL=dynamitesoftware21@gmail.com
+SES_SENDER_EMAIL=dynamitesoftware21@gmail.com
 ```
 
 3. Iniciar el servicio:
